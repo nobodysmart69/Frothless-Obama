@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Snoldier Frothless</title>
+    <style type="text/css">
+        @font-face {
+            font-family: 'BDCartoonShoutRegular';
+            src: url('BD_Cartoon_Shout-webfont.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'PressStart2P';
+            src: url('https://fonts.cdnfonts.com/s/17256/PressStart2P-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body {
+            background: #000000;
+            background-image: radial-gradient(circle at top left, rgba(63, 191, 191, 0.2), transparent 70%),
+                             radial-gradient(circle at top right, rgba(191, 63, 191, 0.2), transparent 70%);
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            color: #ffff00;
+            overflow-x: hidden;
+            max-width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #pacman {
+            height: 450px;
+            width: 100%;
+            max-width: 342px;
+            margin: 20px auto;
+            position: relative;
+            border: 3px solid #800080;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(128, 0, 128, 0.3),
+                        0 0 5px rgba(255, 255, 0, 0.2);
+            background: #1c2526;
+        }
+        #shim { 
+            font-family: BDCartoonShoutRegular; 
+            position: absolute;
+            visibility: hidden;
+        }
+        .marquee {
+            width: 100%;
+            background: #4b0082;
+            padding: 10px 0;
+            text-align: center;
+            box-shadow: 0 0 5px #4b0082;
+            margin-bottom: 10px;
+        }
+        h1 { 
+            font-family: 'PressStart2P'; 
+            text-align: center; 
+            color: #ffff00;
+            margin: 0;
+            padding: 5px 0;
+            text-shadow: 1px 1px #4b0082, 2px 2px #1e40af;
+            font-size: 32px;
+            letter-spacing: 2px;
+        }
+        h2 { 
+            font-family: 'PressStart2P';
+            text-align: center; 
+            font-size: 18px; 
+            color: #ffcc00;
+            margin: 0;
+            padding: 5px 0;
+            text-shadow: 1px 1px #4b0082;
+        }
+        p {
+            text-align: center;
+            font-family: 'PressStart2P';
+            color: #ffffff;
+            margin: 10px 0;
+            padding: 0 20px;
+            font-size: 14px;
+            line-height: 1.3;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #4b0082;
+            border-radius: 5px;
+            max-width: 300px;
+            text-shadow: 1px 1px #000;
+        }
+        .highlight {
+            font-size: 16px;
+        }
+        a { 
+            text-decoration: none; 
+            color: #ffcc00;
+            padding: 0 5px;
+            text-shadow: 1px 1px #4b0082;
+        }
+        a:hover {
+            color: #ffff00;
+            text-decoration: underline;
+        }
+        canvas {
+            touch-action: manipulation;
+            -ms-touch-action: manipulation;
+        }
+        #controls {
+            text-align: center;
+            display: none;
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 0;
+            border-top: 2px solid #4b0082;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 0 10px rgba(75, 0, 130, 0.3);
+        }
+        #controls button {
+            font-family: 'PressStart2P';
+            font-size: 16px;
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            background: #4b0082;
+            border: 2px solid #ffff00;
+            border-radius: 10%;
+            color: #ffff00;
+            cursor: pointer;
+            text-shadow: 1px 1px #1e40af;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #controls button:active {
+            transform: scale(0.9);
+            box-shadow: 0 0 5px #ffff00;
+        }
+    </style>
+</head>
+<body>
+    <div id="shim">shim for font face</div>
+    <div class="marquee">
+        <h1>Snoldier Frothless</h1>
+        <h2>Attack of African Midget Obama</h2>
+    </div>
+    <p><span class="highlight"><p>African Midget Bitcoin Obama Wants All Of Frothless's BTC </span> Help Frothless Fight Off The African Midget Obama And Get Him Back To Snailbrook</p>                   
+    <div id="pacman"></div>
+    <div id="controls">
+        <button onclick="move('up')">↑</button><br>
+        <button onclick="move('down')">↓</button><br>
+        <button onclick="move('left')">←</button>
+        <button onclick="move('right')">→</button>
+        <button onclick="startGame()">N</button>
+    </div>
+    <script src="modernizr-1.5.min.js"></script>
+    <script src="pacman.js"></script>
+    <script>
+        var el = document.getElementById("pacman");
+        var isMobile = window.innerWidth <= 768;
+
+        function customDialog(text) {
+            ctx.fillStyle = "#FFFF00";
+            ctx.font = "14px BDCartoonShoutRegular";
+            var width = ctx.measureText(text).width,
+                x = ((map.width * map.blockSize) - width) / 2;
+            ctx.fillText(text, x, (map.height * 10) + 8);
+        }
+
+        if (typeof PACMAN !== 'undefined') {
+            PACMAN.dialog = function(text) {
+                if (isMobile && state === WAITING) {
+                    customDialog("Touch anywhere on the screen to start");
+                } else {
+                    customDialog(text);
+                }
+            };
+        }
+
+        if (Modernizr.canvas && Modernizr.localstorage && 
+            Modernizr.audio && (Modernizr.audio.ogg || Modernizr.audio.mp3)) {
+            window.setTimeout(function () { 
+                PACMAN.init(el, "./"); 
+            }, 0);
+        } else { 
+            el.innerHTML = "Sorry, needs a decent browser<br /><small>" + 
+                "(firefox 3.6+, Chrome 4+, Opera 10+ and Safari 4+)</small>";
+        }
+
+        function move(dir) {
+            if (typeof PACMAN !== 'undefined' && PACMAN.keyDown) {
+                var keyMap = { 'up': KEY.ARROW_UP, 'down': KEY.ARROW_DOWN, 
+                              'left': KEY.ARROW_LEFT, 'right': KEY.ARROW_RIGHT };
+                PACMAN.keyDown({ keyCode: keyMap[dir], preventDefault: function(){}, stopPropagation: function(){} });
+            }
+        }
+
+        function startGame() {
+            PACMAN.keyDown({ keyCode: KEY.N, preventDefault: function(){}, stopPropagation: function(){} });
+            document.getElementById('controls').style.display = 'block';
+        }
+
+        if (window.innerWidth <= 768) {
+            document.getElementById('controls').style.display = 'block';
+            el.addEventListener('touchstart', function() {
+                if (state === WAITING) {
+                    startGame();
+                }
+            }, { passive: true });
+        }
+    </script>
+</body>
+</html>
