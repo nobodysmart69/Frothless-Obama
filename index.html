@@ -4,6 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Snoldier Frothless</title>
+    <!-- CSP Meta Tag to allow 'unsafe-eval' (temporary fix) -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval';">
     <style type="text/css">
         @font-face {
             font-family: 'BDCartoonShoutRegular';
@@ -156,6 +158,8 @@
         <button onclick="move('right')">→</button>
         <button onclick="startGame()">N</button>
     </div>
+    <!-- Modernizr for feature detection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
     <script src="pacman.js"></script>
     <script>
         var el = document.getElementById("pacman");
