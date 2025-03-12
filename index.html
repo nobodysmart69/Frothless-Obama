@@ -4,12 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Snoldier Frothless</title>
-    <!-- CSP Meta Tag to allow 'unsafe-eval' (temporary fix) -->
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval';">
+    <!-- Updated CSP to include the inline script hash -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval' https://cdnjs.cloudflare.com 'sha256-P80GdXE5TBfsijUcjPeYDhOHuMi2oKtJa45EHFfsXVQ=';">
     <style type="text/css">
         @font-face {
             font-family: 'BDCartoonShoutRegular';
-            src: url('BD_Cartoon_Shout-webfont.ttf') format('truetype');
+            src: url('BD Cartoon_Shout-webfont.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
         }
