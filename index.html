@@ -4,18 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Snoldier Frothless</title>
-    <!-- Updated CSP to include the inline script hash -->
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval' https://cdnjs.cloudflare.com 'sha256-P80GdXE5TBfsijUcjPeYDhOHuMi2oKtJa45EHFfsXVQ=';">
+    <!-- Adjusted CSP for GitHub Pages compatibility -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
     <style type="text/css">
         @font-face {
             font-family: 'BDCartoonShoutRegular';
-            src: url('BD Cartoon_Shout-webfont.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }
-        @font-face {
-            font-family: 'PressStart2P';
-            src: url('https://fonts.cdnfonts.com/s/17256/PressStart2P-Regular.ttf') format('truetype');
+            src: url('BD%20Cartoon_Shout-webfont.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
         }
@@ -25,7 +19,7 @@
                              radial-gradient(circle at top right, rgba(191, 63, 191, 0.2), transparent 70%);
             margin: 0;
             padding: 0;
-            font-family: sans-serif;
+            font-family: 'BDCartoonShoutRegular', sans-serif;
             color: #ffff00;
             overflow-x: hidden;
             max-width: 100%;
@@ -38,7 +32,7 @@
             width: 100%;
             max-width: 342px;
             height: auto;
-            aspect-ratio: 342 / 450; /* Maintains the original proportions */
+            aspect-ratio: 342 / 450;
             margin: 20px auto;
             position: relative;
             border: 3px solid #800080;
@@ -48,11 +42,6 @@
                         0 0 5px rgba(255, 255, 0, 0.2);
             background: #1c2526;
         }
-        #shim { 
-            font-family: BDCartoonShoutRegular; 
-            position: absolute;
-            visibility: hidden;
-        }
         .marquee {
             width: 100%;
             background: #4b0082;
@@ -61,9 +50,9 @@
             box-shadow: 0 0 5px #4b0082;
             margin-bottom: 10px;
         }
-        h1 { 
-            font-family: 'PressStart2P'; 
-            text-align: center; 
+        h1 {
+            font-family: 'BDCartoonShoutRegular';
+            text-align: center;
             color: #ffff00;
             margin: 0;
             padding: 5px 0;
@@ -71,10 +60,10 @@
             font-size: 32px;
             letter-spacing: 2px;
         }
-        h2 { 
-            font-family: 'PressStart2P';
-            text-align: center; 
-            font-size: 18px; 
+        h2 {
+            font-family: 'BDCartoonShoutRegular';
+            text-align: center;
+            font-size: 18px;
             color: #ffcc00;
             margin: 0;
             padding: 5px 0;
@@ -82,7 +71,7 @@
         }
         p {
             text-align: center;
-            font-family: 'PressStart2P';
+            font-family: 'BDCartoonShoutRegular';
             color: #ffffff;
             margin: 10px 0;
             padding: 0 20px;
@@ -94,23 +83,6 @@
             max-width: 300px;
             text-shadow: 1px 1px #000;
         }
-        .highlight {
-            font-size: 16px;
-        }
-        a { 
-            text-decoration: none; 
-            color: #ffcc00;
-            padding: 0 5px;
-            text-shadow: 1px 1px #4b0082;
-        }
-        a:hover {
-            color: #ffff00;
-            text-decoration: underline;
-        }
-        canvas {
-            touch-action: manipulation;
-            -ms-touch-action: manipulation;
-        }
         #controls {
             text-align: center;
             display: none;
@@ -119,12 +91,12 @@
             width: 100%;
             background: rgba(0, 0, 0, 0.8);
             padding: 15px 0;
-            border-top: 2px solid #4b0082;
+            border: 2px solid #4b0082;
             border-radius: 10px 10px 0 0;
             box-shadow: 0 0 10px rgba(75, 0, 130, 0.3);
         }
         #controls button {
-            font-family: 'PressStart2P';
+            font-family: 'BDCartoonShoutRegular';
             font-size: 16px;
             width: 50px;
             height: 50px;
@@ -144,7 +116,6 @@
     </style>
 </head>
 <body>
-    <div id="shim">shim for font face</div>
     <div class="marquee">
         <h1>Snoldier Frothless</h1>
         <h2>Attack of the African Midgets</h2>
@@ -152,14 +123,13 @@
     <p><span class="highlight">Help Frothless fight off the African Midgets</span> and Get Him Back To Snailbrook</p>
     <div id="pacman"></div>
     <div id="controls">
-        <button onclick="move('up')">↑</button><br>
-        <button onclick="move('down')">↓</button><br>
-        <button onclick="move('left')">←</button>
-        <button onclick="move('right')">→</button>
-        <button onclick="startGame()">N</button>
+        <button id="up-button">↑</button><br>
+        <button id="down-button">↓</button><br>
+        <button id="left-button">←</button>
+        <button id="right-button">→</button>
+        <button id="start-button">N</button>
     </div>
-    <!-- Modernizr for feature detection -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+    <script src="modernizr-1.5.min.js"></script>
     <script src="pacman.js"></script>
     <script>
         var el = document.getElementById("pacman");
@@ -174,6 +144,21 @@
             el.innerHTML = "Sorry, needs a decent browser<br /><small>" + 
                 "(firefox 3.6+, Chrome 4+, Opera 10+ and Safari 4+)</small>";
         }
+
+        // Attach event listeners for buttons
+        document.getElementById('up-button').addEventListener('click', function() {
+            move('up');
+        });
+        document.getElementById('down-button').addEventListener('click', function() {
+            move('down');
+        });
+        document.getElementById('left-button').addEventListener('click', function() {
+            move('left');
+        });
+        document.getElementById('right-button').addEventListener('click', function() {
+            move('right');
+        });
+        document.getElementById('start-button').addEventListener('click', startGame);
 
         function move(dir) {
             if (typeof PACMAN !== 'undefined' && PACMAN.keyDown) {
