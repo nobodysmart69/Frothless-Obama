@@ -1,3 +1,4 @@
+/*jslint browser: true, undef: true, eqeqeq: true, nomen: true, white: true */
 var NONE        = 4,
     UP          = 3,
     LEFT        = 2,
@@ -316,7 +317,7 @@ Pacman.User = function (game, map) {
     function next(pos, dir) {
         return {
             "y" : pointToCoord(nextSquare(pos.y, dir)),
-            "x" : pointToCoord(nextSquare(pos.x, dir))
+            "x" : pointToCoord(nextSquare(pos.x, dir)),
         };                               
     };
 
@@ -707,6 +708,10 @@ var PACMAN = (function () {
     }
 
     function dialog(text) {
+        var isMobile = window.innerWidth <= 768;
+        if (isMobile && state === WAITING) {
+            text = "Touch anywhere on the screen to start";
+        }
         ctx.fillStyle = "#FFFF00";
         ctx.font      = "14px BDCartoonShoutRegular";
         var width = ctx.measureText(text).width,
@@ -975,10 +980,8 @@ var PACMAN = (function () {
 
     return {
         "init" : init,
-        "keyDown" : keyDown,
-        "getState" : function() { return state; },
-        "ctx" : ctx,  // Expose ctx for external access if needed
-        "map" : map   // Expose map for external access if needed
+        "keyDown": keyDown,
+        "getState": function() { return state; }
     };
 }());
 
@@ -987,7 +990,7 @@ var KEY = {
     'BACKSPACE': 8, 'TAB': 9, 'NUM_PAD_CLEAR': 12, 'ENTER': 13, 'SHIFT': 16, 
     'CTRL': 17, 'ALT': 18, 'PAUSE': 19, 'CAPS_LOCK': 20, 'ESCAPE': 27, 
     'SPACEBAR': 32, 'PAGE_UP': 33, 'PAGE_DOWN': 34, 'END': 35, 'HOME': 36, 
-    'ARROW_LEFT': 37, 'ARROW_UP':  AscendantNode38, 'ARROW_RIGHT': 39, 'ARROW_DOWN': 40, 
+    'ARROW_LEFT': 37, 'ARROW_UP': 38, 'ARROW_RIGHT': 39, 'ARROW_DOWN': 40, 
     'PRINT_SCREEN': 44, 'INSERT': 45, 'DELETE': 46, 'SEMICOLON': 59, 
     'WINDOWS_LEFT': 91, 'WINDOWS_RIGHT': 92, 'SELECT': 93, 'NUM_PAD_ASTERISK': 106, 
     'NUM_PAD_PLUS_SIGN': 107, 'NUM_PAD_HYPHEN-MINUS': 109, 'NUM_PAD_FULL_STOP': 110, 
@@ -1087,118 +1090,54 @@ Object.prototype.clone = function () {
     return newObj;
 };
 
-Notes on the Updated JavaScript
+// Touch Controls for Mobile
+let touchStartX, touchStartY;
+document.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}, { passive: false });
 
-	1.	Core Game Logic: This includes all the original Pacman functionality—ghost AI, player movement (via arrow keys), map rendering, audio, scoring, and level progression—exactly as it was in your inline <script> version.
-	2.	Mobile Considerations: The PACMAN object exposes keyDown and getState (and optionally ctx and map) so the HTML can interact with it for mobile controls (e.g., simulating key presses). However, the swipe-specific logic (touch event listeners) is left out of this file because it’s HTML-specific and relies on DOM elements (like the canvas), which are better handled in the HTML.
-	3.	No HTML-Specific Code: I’ve removed the initialization code (e.g., var el = document.getElementById("pacman");, PACMAN.init(el, "./");) and mobile-specific DOM manipulation (e.g., touch listeners, move(), startGame()) from this file. These belong in the HTML’s inline <script> to keep the separation clean.
+document.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    let touchEndX = e.changedTouches[0].clientX;
+    let touchEndY = e.changedTouches[0].clientY;
+    let deltaX = touchEndX - touchStartX;
+    let deltaY = touchEndY - touchStartY;
 
-Corresponding HTML <script> for Mobile Updates
-
-To use this pacman.js, your HTML would need a small inline <script> to initialize the game and add mobile features. Here’s an example of what that might look like (you’d replace your current inline <script> with this):
-
-<script src="modernizr-1.5.min.js"></script>
-<script src="pacman.js"></script>
-<script>
-    var el = document.getElementById("pacman");
-    var isMobile = window.innerWidth <= 768;
-
-    function customDialog(text) {
-        if (PACMAN.ctx) {
-            PACMAN.ctx.fillStyle = "#FFFF00";
-            PACMAN.ctx.font = "14px BDCartoonShoutRegular";
-            var width = PACMAN.ctx.measureText(text).width,
-                x = ((PACMAN.map.width * PACMAN.map.blockSize) - width) / 2;
-            PACMAN.ctx.fillText(text, x, (PACMAN.map.height * 10) + 8);
-        }
+    let direction;
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        direction = deltaX > 0 ? 'right' : 'left';
+    } else {
+        direction = deltaY > 0 ? 'down' : 'up';
     }
 
-    if (typeof PACMAN !== 'undefined') {
-        PACMAN.dialog = function(text) {
-            if (isMobile && PACMAN.getState() === WAITING) {
-                customDialog("Touch to start, then swipe to move");
-            } else {
-                customDialog(text);
-            }
-        };
+    const keyMap = {
+        'left': KEY.ARROW_LEFT,
+        'right': KEY.ARROW_RIGHT,
+        'up': KEY.ARROW_UP,
+        'down': KEY.ARROW_DOWN
+    };
+    if (typeof PACMAN !== 'undefined' && PACMAN.keyDown) {
+        PACMAN.keyDown({ keyCode: keyMap[direction], preventDefault: function(){}, stopPropagation: function(){} });
     }
+}, { passive: false });
 
-    if (Modernizr.canvas && Modernizr.localstorage && 
-        Modernizr.audio && (Modernizr.audio.ogg || Modernizr.audio.mp3)) {
-        window.setTimeout(function () { 
-            PACMAN.init(el, "./");
-            if (isMobile) {
-                var canvas = el.querySelector('canvas');
-                var touchStartX;
-                var touchStartY;
-                var minSwipeDistance = 30;
-
-                function handleTouchStart(e) {
-                    if (PACMAN.getState() !== PLAYING) return;
-                    var touch = e.touches[0];
-                    touchStartX = touch.clientX;
-                    touchStartY = touch.clientY;
-                    e.preventDefault();
-                }
-
-                function handleTouchEnd(e) {
-                    if (PACMAN.getState() !== PLAYING || touchStartX === undefined || touchStartY === undefined) return;
-                    var touch = e.changedTouches[0];
-                    var touchEndX = touch.clientX;
-                    var touchEndY = touch.clientY;
-                    var dx = touchEndX - touchStartX;
-                    var dy = touchEndY - touchStartY;
-                    if (Math.abs(dx) > minSwipeDistance || Math.abs(dy) > minSwipeDistance) {
-                        var direction;
-                        if (Math.abs(dx) > Math.abs(dy)) {
-                            direction = dx > 0 ? 'right' : 'left';
-                        } else {
-                            direction = dy > 0 ? 'down' : 'up';
-                        }
-                        move(direction);
-                    }
-                    touchStartX = undefined;
-                    touchStartY = undefined;
-                    e.preventDefault();
-                }
-
-                canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
-                canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
-            }
-        }, 0);
-    } else { 
-        el.innerHTML = "Sorry, needs a decent browser<br /><small>" + 
-            "(firefox 3.6+, Chrome 4+, Opera 10+ and Safari 4+)</small>";
+// Dynamic Scaling for Canvas
+function resizeCanvas() {
+    const canvas = document.querySelector('#pacman canvas');
+    const wrapper = document.getElementById('pacman');
+    if (canvas && wrapper) {
+        const blockSize = wrapper.offsetWidth / 19;
+        canvas.width = blockSize * 19;
+        canvas.height = blockSize * 22 + 30;
+        map.blockSize = blockSize;
+        map.reset();
+        map.draw(ctx);
     }
+}
 
-    function move(dir) {
-        if (typeof PACMAN !== 'undefined' && PACMAN.keyDown) {
-            var keyMap = { 'up': KEY.ARROW_UP, 'down': KEY.ARROW_DOWN, 
-                           'left': KEY.ARROW_LEFT, 'right': KEY.ARROW_RIGHT };
-            PACMAN.keyDown({ keyCode: keyMap[dir], preventDefault: function(){}, stopPropagation: function(){} });
-        }
-    }
-
-    function startGame() {
-        PACMAN.keyDown({ keyCode: KEY.N, preventDefault: function(){}, stopPropagation: function(){} });
-        if (isMobile) {
-            document.getElementById('controls').style.display = 'block';
-        }
-    }
-
-    if (isMobile) {
-        document.getElementById('controls').style.display = 'block';
-        el.addEventListener('touchstart', function() {
-            if (PACMAN.getState() === WAITING) {
-                startGame();
-            }
-        }, { passive: true });
-    }
-</script>
-
-Explanation
-
-	•	JavaScript File (pacman.js): Contains the full game logic, including desktop controls (arrow keys) and core mechanics, but leaves out DOM-specific mobile code.
-	•	HTML Inline <script>: Handles initialization (PACMAN.init), mobile detection, touch/swipe controls, and button interactions, interfacing with the PACMAN object via its exposed methods (keyDown, getState).
-
-This setup restores the separation you seemed to prefer, with pacman.js as a standalone file and the HTML handling UI-specific updates. The mobile swipe feature is fully supported, while desktop users still use arrow keys as before. Let me know if you need further adjustments!
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('load', () => {
+    resizeCanvas(); // Initial call to set the correct size
+});
