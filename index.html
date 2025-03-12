@@ -18,9 +18,7 @@
             font-style: normal;
         }
         body {
-            background: #000000;
-            background-image: radial-gradient(circle at top left, rgba(63, 191, 191, 0.2), transparent 70%),
-                             radial-gradient(circle at top right, rgba(191, 63, 191, 0.2), transparent 70%);
+            background: linear-gradient(to bottom, #1a1a2e, #16213e);
             margin: 0;
             padding: 0;
             font-family: sans-serif;
@@ -108,35 +106,19 @@
             touch-action: manipulation;
             -ms-touch-action: manipulation;
         }
-        #controls {
-            text-align: center;
-            display: none;
+        #joystick {
             position: fixed;
-            bottom: 10px;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px 0;
-            border-top: 2px solid #4b0082;
-            border-radius: 10px 10px 0 0;
-            box-shadow: 0 0 10px rgba(75, 0, 130, 0.3);
+            bottom: 30px; /* Increased for better visibility */
+            right: 20px;  /* Moved to bottom-right for aesthetic balance */
+            width: 120px; /* Slightly larger for better touch interaction */
+            height: 120px;
+            display: none;
+            border-radius: 50%; /* Circular shape for a polished look */
+            background: rgba(75, 0, 130, 0.2); /* Subtle purple overlay to match theme */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Soft shadow for depth */
         }
-        #controls button {
-            font-family: 'PressStart2P';
-            font-size: 16px;
-            width: 50px;
-            height: 50px;
-            margin: 5px;
-            background: #4b0082;
-            border: 2px solid #ffff00;
-            border-radius: 10%;
-            color: #ffff00;
-            cursor: pointer;
-            text-shadow: 1px 1px #1e40af;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        #controls button:active {
-            transform: scale(0.9);
-            box-shadow: 0 0 5px #ffff00;
+        @media (max-width: 768px) {
+            #joystick { display: block; }
         }
     </style>
 </head>
@@ -148,13 +130,8 @@
     </div>
     <p><span class="highlight">Help Frothless fight off the African Midgets</span> and Get Him Back To Snailbrook</p>
     <div id="pacman"></div>
-    <div id="controls">
-        <button onclick="move('up')">↑</button><br>
-        <button onclick="move('down')">↓</button><br>
-        <button onclick="move('left')">←</button>
-        <button onclick="move('right')">→</button>
-        <button onclick="startGame()">N</button>
-    </div>
+    <div id="joystick"></div>
+    <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.8.0/dist/nipplejs.min.js"></script>
     <script src="modernizr-1.5.min.js"></script>
     <script src="pacman.js"></script>
     <script>
@@ -189,24 +166,41 @@
                 "(firefox 3.6+, Chrome 4+, Opera 10+ and Safari 4+)</small>";
         }
 
-        function move(dir) {
-            if (typeof PACMAN !== 'undefined' && PACMAN.keyDown) {
-                var keyMap = { 'up': KEY.ARROW_UP, 'down': KEY.ARROW_DOWN, 
-                              'left': KEY.ARROW_LEFT, 'right': KEY.ARROW_RIGHT };
-                PACMAN.keyDown({ keyCode: keyMap[dir], preventDefault: function(){}, stopPropagation: function(){} });
-            }
-        }
-
-        function startGame() {
-            PACMAN.keyDown({ keyCode: KEY.N, preventDefault: function(){}, stopPropagation: function(){} });
-            document.getElementById('controls').style.display = 'block';
-        }
-
         if (window.innerWidth <= 768) {
-            document.getElementById('controls').style.display = 'block';
+            var joystick = nipplejs.create({
+                zone: document.getElementById('joystick'),
+                mode: 'static',
+                position: { right: '20px', bottom: '30px' }, // Adjusted for bottom-right
+                color: '#ffff00' // Changed to yellow to match your theme
+            });
+
+            joystick.on('move', function (evt, data) {
+                var direction = data.direction ? data.direction.angle : null;
+                if (typeof PACMAN !== 'undefined' && PACMAN.keyDown && direction) {
+                    switch (direction) {
+                        case 'up':
+                            PACMAN.keyDown({ keyCode: KEY.ARROW_UP, preventDefault: function(){}, stopPropagation: function(){} });
+                            break;
+                        case 'down':
+                            PACMAN.keyDown({ keyCode: KEY.ARROW_DOWN, preventDefault: function(){}, stopPropagation: function(){} });
+                            break;
+                        case 'left':
+                            PACMAN.keyDown({ keyCode: KEY.ARROW_LEFT, preventDefault: function(){}, stopPropagation: function(){} });
+                            break;
+                        case 'right':
+                            PACMAN.keyDown({ keyCode: KEY.ARROW_RIGHT, preventDefault: function(){}, stopPropagation: function(){} });
+                            break;
+                    }
+                }
+            });
+
+            joystick.on('end', function () {
+                // Optionally stop movement when joystick is released (requires pacman.js change)
+            });
+
             el.addEventListener('touchstart', function() {
                 if (state === WAITING) {
-                    startGame();
+                    PACMAN.keyDown({ keyCode: KEY.N, preventDefault: function(){}, stopPropagation: function(){} });
                 }
             }, { passive: true });
         }
