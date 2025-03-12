@@ -64,16 +64,18 @@
             touch-action: manipulation;
             -ms-touch-action: manipulation;
         }
-        #joystick {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 100px;
-            height: 100px;
+        #controls {
+            text-align: center;
             display: none;
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
         }
-        @media (max-width: 768px) {
-            #joystick { display: block; }
+        #controls button {
+            font-size: 20px;
+            width: 50px;
+            height: 50px;
+            margin: 5px;
         }
     </style>
 </head>
@@ -83,8 +85,13 @@
     <h2>Attack of the African Midgets</h2>
     <p>Help Frothless fight off the African Midgets and Get Him Back To Snailbrook</p>
     <div id="pacman"></div>
-    <div id="joystick"></div>
-    <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.8.0/dist/nipplejs.min.js"></script>
+    <div id="controls">
+        <button onclick="move('up')">↑</button><br>
+        <button onclick="move('down')">↓</button><br>
+        <button onclick="move('left')">←</button>
+        <button onclick="move('right')">→</button>
+        <button onclick="startGame()">N</button>
+    </div>
     <script src="modernizr-1.5.min.js"></script>
     <script src="pacman.js"></script>
     <script>
@@ -99,44 +106,20 @@
             el.innerHTML = "Sorry, needs a decent browser<br /><small>" + 
                 "(firefox 3.6+, Chrome 4+, Opera 10+ and Safari 4+)</small>";
         }
-
+        function move(dir) {
+            if (typeof PACMAN !== 'undefined' && PACMAN.keyDown) {
+                var keyMap = { 'up': KEY.ARROW_UP, 'down': KEY.ARROW_DOWN, 
+                              'left': KEY.ARROW_LEFT, 'right': KEY.ARROW_RIGHT };
+                PACMAN.keyDown({ keyCode: keyMap[dir], preventDefault: function(){}, stopPropagation: function(){} });
+            }
+        }
         function startGame() {
             PACMAN.keyDown({ keyCode: KEY.N, preventDefault: function(){}, stopPropagation: function(){} });
             el.innerHTML = ''; // Clear button after start
+            document.getElementById('controls').style.display = 'block';
         }
-
-        // Joystick setup for mobile users only
         if (window.innerWidth <= 768) {
-            var joystick = nipplejs.create({
-                zone: document.getElementById('joystick'),
-                mode: 'static',
-                position: { left: '50px', bottom: '50px' },
-                color: '#ffd700'
-            });
-
-            joystick.on('move', function (evt, data) {
-                var direction = data.direction ? data.direction.angle : null;
-                if (typeof PACMAN !== 'undefined' && PACMAN.keyDown && direction) {
-                    switch (direction) {
-                        case 'up':
-                            PACMAN.keyDown({ keyCode: KEY.ARROW_UP, preventDefault: function(){}, stopPropagation: function(){} });
-                            break;
-                        case 'down':
-                            PACMAN.keyDown({ keyCode: KEY.ARROW_DOWN, preventDefault: function(){}, stopPropagation: function(){} });
-                            break;
-                        case 'left':
-                            PACMAN.keyDown({ keyCode: KEY.ARROW_LEFT, preventDefault: function(){}, stopPropagation: function(){} });
-                            break;
-                        case 'right':
-                            PACMAN.keyDown({ keyCode: KEY.ARROW_RIGHT, preventDefault: function(){}, stopPropagation: function(){} });
-                            break;
-                    }
-                }
-            });
-
-            joystick.on('end', function () {
-                // Note: Stopping movement on release requires changes to pacman.js, which was not requested
-            });
+            document.getElementById('controls').style.display = 'block';
         }
     </script>
 </body>
