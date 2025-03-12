@@ -4,12 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Snoldier Frothless</title>
-    <!-- Adjusted CSP for GitHub Pages compatibility -->
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
+    <!-- CSP allows game functionality -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval';">
+    <!-- Prevent favicon 404 error -->
+    <link rel="icon" href="data:,">
     <style type="text/css">
         @font-face {
             font-family: 'BDCartoonShoutRegular';
-            src: url('BD_Cartoon_Shout-webfont.ttf') format('truetype');
+            src: url('BD%20Cartoon_Shout-webfont.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
         }
@@ -83,35 +85,9 @@
             max-width: 300px;
             text-shadow: 1px 1px #000;
         }
+        /* Hide controls by default on all devices */
         #controls {
-            text-align: center;
             display: none;
-            position: fixed;
-            bottom: 10px;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px 0;
-            border: 2px solid #4b0082;
-            border-radius: 10px 10px 0 0;
-            box-shadow: 0 0 10px rgba(75, 0, 130, 0.3);
-        }
-        #controls button {
-            font-family: 'BDCartoonShoutRegular';
-            font-size: 16px;
-            width: 50px;
-            height: 50px;
-            margin: 5px;
-            background: #4b0082;
-            border: 2px solid #ffff00;
-            border-radius: 10%;
-            color: #ffff00;
-            cursor: pointer;
-            text-shadow: 1px 1px #1e40af;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        #controls button:active {
-            transform: scale(0.9);
-            box-shadow: 0 0 5px #ffff00;
         }
     </style>
 </head>
@@ -122,13 +98,8 @@
     </div>
     <p><span class="highlight">Help Frothless fight off the African Midgets</span> and Get Him Back To Snailbrook</p>
     <div id="pacman"></div>
-    <div id="controls">
-        <button id="up-button">↑</button><br>
-        <button id="down-button">↓</button><br>
-        <button id="left-button">←</button>
-        <button id="right-button">→</button>
-        <button id="start-button">N</button>
-    </div>
+    <!-- Empty controls div, hidden on all devices -->
+    <div id="controls"></div>
     <script src="modernizr-1.5.min.js"></script>
     <script src="pacman.js"></script>
     <script>
@@ -145,46 +116,64 @@
                 "(firefox 3.6+, Chrome 4+, Opera 10+ and Safari 4+)</small>";
         }
 
-        // Attach event listeners for buttons
-        document.getElementById('up-button').addEventListener('click', function() {
-            move('up');
-        });
-        document.getElementById('down-button').addEventListener('click', function() {
-            move('down');
-        });
-        document.getElementById('left-button').addEventListener('click', function() {
-            move('left');
-        });
-        document.getElementById('right-button').addEventListener('click', function() {
-            move('right');
-        });
-        document.getElementById('start-button').addEventListener('click', startGame);
-
-        function move(dir) {
-            if (typeof PACMAN !== 'undefined' && PACMAN.keyDown) {
-                var keyMap = { 'up': KEY.ARROW_UP, 'down': KEY.ARROW_DOWN, 
-                              'left': KEY.ARROW_LEFT, 'right': KEY.ARROW_RIGHT };
-                PACMAN.keyDown({ keyCode: keyMap[dir], preventDefault: function(){}, stopPropagation: function(){} });
-            }
-        }
-
-        function startGame() {
-            if (typeof PACMAN !== 'undefined' && PACMAN.keyDown) {
-                PACMAN.keyDown({ keyCode: KEY.N, preventDefault: function(){}, stopPropagation: function(){} });
-                if (isMobile) {
-                    document.getElementById('controls').style.display = 'block';
-                }
-            }
-        }
-
+        // Swipe gesture handling for mobile only
         if (isMobile) {
-            document.getElementById('controls').style.display = 'block';
-            el.addEventListener('touchstart', function() {
-                if (PACMAN.getState() === WAITING) {
-                    startGame();
+            let touchStartX, touchStartY;
+            el.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: false });
+
+            el.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                let touchEndX = e.changedTouches[0].clientX;
+                let touchEndY = e.changedTouches[0].clientY;
+                let deltaX = touchEndX - touchStartX;
+                let deltaY = touchEndY - touchStartY;
+
+                let direction;
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    direction = deltaX > 0 ? 'right' : 'left';
+                } else {
+                    direction = deltaY > 0 ? 'down' : 'up';
                 }
-            }, { passive: true });
+
+                const keyMap = {
+                    'left': KEY.ARROW_LEFT,
+                    'right': KEY.ARROW_RIGHT,
+                    'up': KEY.ARROW_UP,
+                    'down': KEY.ARROW_DOWN
+                };
+                if (typeof PACMAN !== 'undefined' && PACMAN.keyDown) {
+                    PACMAN.keyDown({ keyCode: keyMap[direction], preventDefault: function(){}, stopPropagation: function(){} });
+                }
+            }, { passive: false });
+
+            // Start game on tap if waiting
+            el.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                if (PACMAN.getState() === WAITING) {
+                    PACMAN.keyDown({ keyCode: KEY.N, preventDefault: function(){}, stopPropagation: function(){} });
+                }
+            }, { passive: false });
         }
+
+        // Responsive canvas resizing
+        function resizeCanvas() {
+            const canvas = document.querySelector('#pacman canvas');
+            const wrapper = document.getElementById('pacman');
+            if (canvas && wrapper) {
+                const blockSize = wrapper.offsetWidth / 19;
+                canvas.width = blockSize * 19;
+                canvas.height = blockSize * 22 + 30;
+                map.blockSize = blockSize;
+                map.reset();
+                map.draw(ctx);
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('load', resizeCanvas);
     </script>
 </body>
 </html>
