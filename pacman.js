@@ -1,5 +1,4 @@
 /*jslint browser: true, undef: true, eqeqeq: true, nomen: true, white: true */
-/*global window: false, document: false */
 
 var NONE        = 4,
     UP          = 3,
